@@ -27,13 +27,21 @@ M.setup = function()
 
 			if request["method"]:endsWith("/definition") or request["method"]:endsWith("/references") then
 				made_lsp_request = true
-				-- vim.notify("definition")
 			end
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("BufLeave", {
-		callback = function()
+		callback = function(events)
+			local ft = vim.api.nvim_buf_get_option(events.buf, "filetype")
+			local util = require("util")
+
+			if ft == "TelescopePrompt" then
+				vim.notify(util.table_to_string(events))
+				made_lsp_request = true
+				return
+			end
+
 			local buffer_name = getBufferName(vim.api.nvim_get_current_buf())
 			if buffer_name == nil then
 				return
