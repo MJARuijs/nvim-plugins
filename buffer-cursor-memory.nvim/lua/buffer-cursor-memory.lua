@@ -1,9 +1,14 @@
 require("util")
 
-local M = {}
+local applicable_lsp_requests = {
+	"angular/getComponentsWithTemplateFile",
+	"angular/getTemplateLocationForComponent",
+}
 
 local buffer_cursor_memory = {}
-local made_lsp_request = false
+local should_restore_cursor = false
+
+local M = {}
 
 local function getBufferName(buffer_id)
 	local buffer_name = vim.api.nvim_buf_get_name(buffer_id)
@@ -25,23 +30,16 @@ M.setup = function()
 		callback = function(args)
 			local request = args.data.request
 
-			if request["method"]:endsWith("/definition") or request["method"]:endsWith("/references") then
-				made_lsp_request = true
+			for _, applicable_lsp_request in pairs(applicable_lsp_requests) do
+				if request["method"]:endsWith(applicable_lsp_request) then
+					should_restore_cursor = true
+				end
 			end
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("BufLeave", {
-		callback = function(events)
-			local ft = vim.api.nvim_buf_get_option(events.buf, "filetype")
-			local util = require("util")
-
-			if ft == "TelescopePrompt" then
-				vim.notify(util.table_to_string(events))
-				made_lsp_request = true
-				return
-			end
-
+		callback = function()
 			local buffer_name = getBufferName(vim.api.nvim_get_current_buf())
 			if buffer_name == nil then
 				return
@@ -68,12 +66,9 @@ M.setup = function()
 			end
 
 			vim.schedule(function()
-				if made_lsp_request then
-					-- vim.notify("Not restoring cursor: lsp request was made")
-					made_lsp_request = false
-				else
-					-- vim.notify("Restoring cursor position: " .. cursor_pos[1] .. " " .. cursor_pos[2] .. " for buffer: " .. buffer_name)
+				if should_restore_cursor then
 					vim.fn.setcursorcharpos(cursor_pos[1], cursor_pos[2], 0)
+					should_restore_cursor = false
 				end
 			end)
 		end,
