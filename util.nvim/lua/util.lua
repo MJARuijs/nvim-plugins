@@ -1,5 +1,21 @@
 local M = {}
 
+M.delete_from_table = function(t, entry)
+	local index_to_be_removed = -1
+	for i, v in pairs(t) do
+		if v == entry then
+			index_to_be_removed = i
+			goto continue
+		end
+	end
+	goto continue
+	::continue::
+
+	if index_to_be_removed ~= -1 then
+		table.remove(t, index_to_be_removed)
+	end
+end
+
 function string.startsWith(s, substring)
 	return s:gsub(s, 1, string.len(substring)) == substring
 end
