@@ -1,4 +1,4 @@
-require("util")
+local util = require("util")
 
 local applicable_lsp_requests = {
 	"angular/getComponentsWithTemplateFile",
@@ -47,6 +47,7 @@ M.setup = function()
 
 			local cursor_pos = getCursorPosition()
 			buffer_cursor_memory[buffer_name] = cursor_pos
+			-- vim.notify("BuffSize: " .. util.table_to_string(buffer_cursor_memory))
 			-- vim.notify(
 			-- 	"Saving cursor: " .. cursor_pos[1] .. " " .. cursor_pos[2] .. " for buffer: " .. buffer_name .. " BufferId: " .. vim.api.nvim_get_current_buf()
 			-- )
